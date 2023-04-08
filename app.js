@@ -1,107 +1,122 @@
-function computerPlay() {
-  // Generate a random integer from 1 to 3 representing computer's choice
-  let randomInt = Math.floor(Math.random() * 3) + 1;
-  // Assign rock, paper, or scissors to the computer's choice based on the random integer
-  if (randomInt === 1) {
-    return "rock";
-  } else if (randomInt === 2) {
-    return "paper";
+let scores = {
+  player: 0,
+  computer: 0
+};
+
+const options = {
+  rock: {
+    name: 'Rock',
+    beats: ['scissors']
+  },
+  paper: {
+    name: 'Paper',
+    beats: ['rock']
+  },
+  scissors: {
+    name: 'Scissors',
+    beats: ['paper']
+  }
+};
+
+const playerScoreText = document.getElementById('player-score');
+const computerScoreText = document.getElementById('computer-score');
+const scoreBoard = document.querySelector('.score-board');
+const result = document.querySelector('.result > p');
+const playerPick = document.getElementById('player-choice');
+const computerPick = document.getElementById('computer-choice');
+
+function getComputerChoice() {
+  const choices = Object.keys(options);
+  const randomInt = Math.floor(Math.random() * choices.length);
+  return choices[randomInt];
+}
+
+function win(playerChoice, computerChoice) {
+  scores.player++;
+  playerScoreText.innerHTML = scores.player;
+  computerScoreText.innerHTML = scores.computer;
+  result.innerHTML = `${options[playerChoice].name} beats ${options[computerChoice].name}. You win!`;
+  finalResult();
+
+}
+
+function lose(playerChoice, computerChoice) {
+  scores.computer++;
+  playerScoreText.innerHTML = scores.player;
+  computerScoreText.innerHTML = scores.computer;
+  result.innerHTML = `${options[computerChoice].name} beats ${options[playerChoice].name}. You lose!`;
+  finalResult();
+}
+
+function draw(playerChoice, computerChoice) {
+  result.innerHTML = `${options[playerChoice].name} and ${options[computerChoice].name}. It's a draw!`;
+}
+
+function playRound(playerSelection) {
+  const computerSelection = getComputerChoice();
+  computerPick.innerHTML = options[computerSelection].name;
+
+  const winningCombos = {
+    rock: ['scissors'],
+    paper: ['rock'],
+    scissors: ['paper']
+  };
+
+  if (winningCombos[playerSelection].includes(computerSelection)) {
+    win(playerSelection, computerSelection);
+  } else if (winningCombos[computerSelection].includes(playerSelection)) {
+    lose(playerSelection, computerSelection);
   } else {
-    return "scissors";
+    draw(playerSelection, computerSelection);
   }
 }
 
-function playerPlay() {
-  // Prompt the user to enter their choice of rock, paper, or scissors
-  let playerChoice = prompt("Enter Rock, Paper, or Scissors:");
 
-  // If the player clicks "cancel", exit the game
-  if (playerChoice === null) {
-    alert("Goodbye!");
-    return;
-  }
-
-  // Convert the player's choice to lowercase for case-insensitive matching
-  playerChoice = playerChoice.toLowerCase();
-
-  // Keep prompting the user until they enter a valid choice or click "cancel"
-  while (
-    playerChoice !== "rock" &&
-    playerChoice !== "paper" &&
-    playerChoice !== "scissors"
-  ) {
-    playerChoice = prompt("Invalid choice. Enter Rock, Paper, or Scissors:");
-
-    // If the player clicks "cancel", reset the game
-    if (playerChoice === null) {
-      game();
-      return;
-    }
-
-    playerChoice = playerChoice.toLowerCase();
-  }
-
-  return playerChoice;
-}
-
-function playRound(playerSelection, computerSelection) {
-  // Determine the winner of a single round
-  if (playerSelection === computerSelection) {
-    return "It's a tie!";
-  } else if (
-    (playerSelection === "rock" && computerSelection === "scissors") ||
-    (playerSelection === "paper" && computerSelection === "rock") ||
-    (playerSelection === "scissors" && computerSelection === "paper")
-  ) {
-    return "You win!";
-  } else {
-    return "Computer wins!";
+function finalResult() {
+  if (scores.player === 5) {
+    setTimeout(() => {
+      alert('Congratulations, you win the game!');
+      confirmPlayAgain();
+    }, 200);
+  } else if (scores.computer === 5) {
+    setTimeout(() => {
+      alert('Sorry, you lose the game!');
+      confirmPlayAgain();
+    }, 200);
   }
 }
 
-function game() {
-  let playerScore = 0;
-  let computerScore = 0;
-  let playerSelection;
-  let computerSelection;
-  let roundResult;
-  while (playerScore < 5 && computerScore < 5) {
-    playerSelection = playerPlay();
-    // If playerPlay() returns undefined, exit the game
-    if (playerSelection === undefined) {
-      return;
-    }
-    computerSelection = computerPlay();
-    roundResult = playRound(playerSelection, computerSelection);
-    console.log(
-      `Player: ${
-        playerSelection.charAt(0).toUpperCase() + playerSelection.slice(1)
-      } | Computer: ${
-        computerSelection.charAt(0).toUpperCase() + computerSelection.slice(1)
-      } -> ${roundResult}`
-    );
-    if (roundResult === "You win!") {
-      playerScore++;
-    } else if (roundResult === "Computer wins!") {
-      computerScore++;
-    }
-    console.log(`Score: Player ${playerScore} - ${computerScore} Computer`);
-  }
-  if (playerScore > computerScore) {
-    console.log("You win the game!");
-  } else if (playerScore < computerScore) {
-    console.log("Computer wins the game!");
+function resetGame() {
+  scores = {
+    player: 0,
+    computer: 0
+  };
+  playerScoreText.innerHTML = 0;
+  computerScoreText.innerHTML = 0;
+  result.innerHTML = 'Choose rock, paper, or scissors to start playing!';
+  playerPick.innerHTML = '';
+  computerPick.innerHTML = '';
+  computerPick.style.display = 'none';
+}
+
+function confirmPlayAgain() {
+  if (confirm('Do you want to play again?')) {
+    resetGame();
   } else {
-    console.log("It's a tie game!");
-  }
-  let playAgain = confirm("Do you want to play again?");
-  if (playAgain) {
-    // Reset the scores and play again
-    game();
-  } else {
-    console.log("Thanks for playing!");
+    resetGame();
+    alert('Thanks for playing!');
   }
 }
 
-// Start the game
-game();
+function main() {
+  const optionsButtons = document.querySelectorAll('.choice');
+  optionsButtons.forEach(option => {
+    option.addEventListener('click', () => {
+      playRound(option.id);
+      playerPick.innerHTML = options[option.id].name;
+      computerPick.style.display = 'block';
+    });
+  });
+}
+
+main();
